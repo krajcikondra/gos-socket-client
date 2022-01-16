@@ -1,6 +1,6 @@
 {
   "name": "gos-socket-client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "author": "Ondrej Krajcik <ondrakrajcik@gmail.com>",

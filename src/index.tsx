@@ -1,4 +1,5 @@
 import {Session} from 'autobahn';
+import { ClientOptions } from './client-options';
 import {InnerMessage} from "./message";
 
 // https://github.com/GeniusesOfSymfony/WebSocketBundle/blob/v3.9.0/docs/javascript-client.md
@@ -90,7 +91,7 @@ export class GosSocketClient<Msg, Topic extends string> {
         const {pingChannel} = this.options;
         setInterval(() => {
             this.publish(pingChannel, {message: 'ping'});
-        }, 10000);
+        }, 15000);
     }
 
 

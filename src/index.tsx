@@ -108,11 +108,11 @@ export class GosSocketClient<Msg, Topic extends string> {
     })
 
     unsubscribe = (topic: Topic): void => {
-        this.subscribers.delete(topic);
         if (this.isConnect(topic)) {
             try {
                 // @ts-ignore
                 this.session?.unsubscribe(topic);
+                this.subscribers.delete(topic);
             } catch (err) {
                 console.error(err); // eslint-disable-line no-console
                 // can throw error unsubscribe

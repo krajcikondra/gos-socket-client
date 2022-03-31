@@ -28,6 +28,11 @@ export class GosSocketClient<Msg, Topic extends string> {
         }
 
         this.url = requiredUrl;
+        // @ts-ignore
+        if (!GosSocket) {
+            throw new Error('GosSocket is not defined. Check if autobahn.min.js and websocket.min.js is used.')
+        }
+
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const webSocket = GosSocket.connect(requiredUrl);

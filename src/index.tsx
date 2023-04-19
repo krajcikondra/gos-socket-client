@@ -13,6 +13,7 @@ export class GosSocketClient<Msg, Topic extends string> {
     protected connectionStatus: ConnectionStatus = 'notConnected';
     protected session: Session|null = null;
     protected debug = true;
+    protected pingInterval: number|null = null;
 
     private url: string;
     private subscribers: Map<Topic, OnSubscribe<InnerMessage<Msg>>> = new Map();
@@ -21,12 +22,7 @@ export class GosSocketClient<Msg, Topic extends string> {
 
     protected constructor(options: ClientOptions<Topic>) {
         this.options = options;
-        const requiredUrl = options.url ? options.url : GosSocketClient.defaultUrl;
-        if (!requiredUrl) {
-            throw new Error('GosSocketClient: url is not set. Pass url argument or set GosSocketClient.defaultUrl ' +
-                'first');
-        }
-
+        const requiredUrl = GosSocketClient.getRequiredUrl(options);
         this.url = requiredUrl;
         // @ts-ignore
         if (!GosSocket) {
@@ -55,7 +51,17 @@ export class GosSocketClient<Msg, Topic extends string> {
             this.isFirstConnect = false;
             this.connectionStatus = 'notConnected';
             this.destroySession();
+            this.destroyPing();
         });
+    }
+
+    protected static getRequiredUrl = (options: ClientOptions<any>): string => {
+        const requiredUrl = options.url ? options.url : GosSocketClient.defaultUrl;
+        if (!requiredUrl) {
+            throw new Error('GosSocketClient: url is not set. Pass url argument or set GosSocketClient.defaultUrl ' +
+                'first');
+        }
+        return requiredUrl;
     }
 
     static getInstance = (options: ClientOptions<any>): GosSocketClient<unknown, string> => {
@@ -71,6 +77,16 @@ export class GosSocketClient<Msg, Topic extends string> {
         }
 
         return wsClient;
+    }
+
+    static getInstanceIfExist = (options: ClientOptions<any>): GosSocketClient<unknown, string>|null => {
+        const requiredUrl = options.url ? options.url : this.defaultUrl;
+        if (!requiredUrl) {
+            throw new Error('Url is not filled. Please pass url parameter or set WsClient.default url first');
+        }
+
+        const ws = this.instances.get(requiredUrl);
+        return ws ?? null;
     }
 
     destroySession = (): void => {
@@ -94,7 +110,7 @@ export class GosSocketClient<Msg, Topic extends string> {
 
     startPing = () => {
         const {pingChannel} = this.options;
-        setInterval(() => {
+        this.pingInterval = setInterval(() => {
             this.publish(pingChannel, {message: 'ping'});
         }, 15000);
     }
@@ -152,13 +168,31 @@ export class GosSocketClient<Msg, Topic extends string> {
             return;
         }
 
-        instance.unsubscribeAll();
-        instance.close();
+        const requiredUrl = this.getRequiredUrl(options);
+        this.instances.delete(requiredUrl);
+
+        instance.destroy();
+    };
+
+    static destroyAll = (): void => {
+        this.instances.forEach(instance => {
+            instance.destroy();
+        });
+        this.instances.clear();
+
     };
 
     destroy = (): void => {
+        this.destroyPing();
+        GosSocketClient.instances.delete(this.url);
         this.unsubscribeAll();
         this.close();
+    };
+
+    private destroyPing = (): void => {
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+        }
     };
 
     private reInitSubscribers = (): void => {

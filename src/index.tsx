@@ -108,6 +108,10 @@ export class GosSocketClient<Msg, Topic extends string> {
         }, 100);
     });
 
+    getConnectionStatus = (): ConnectionStatus => {
+        return this.connectionStatus;
+    }
+
     startPing = () => {
         const {pingChannel} = this.options;
         this.pingInterval = setInterval(() => {

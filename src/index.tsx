@@ -3,7 +3,7 @@ import { ClientOptions } from './client-options';
 import {InnerMessage} from "./message";
 
 // https://github.com/GeniusesOfSymfony/WebSocketBundle/blob/v3.9.0/docs/javascript-client.md
-type ConnectionStatus = 'connected' | 'notConnected' | 'connecting';
+export type ConnectionStatus = 'connected' | 'notConnected' | 'connecting';
 type OnSubscribe<Msg> = (uri: string, payload: InnerMessage<Msg>) => void;
 
 export class GosSocketClient<Msg, Topic extends string> {
